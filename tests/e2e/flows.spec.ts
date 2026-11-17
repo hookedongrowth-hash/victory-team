@@ -29,7 +29,11 @@ async function claim(page: Page, code: string) {
   await page.click('#havecode');
   await page.fill('#code', code);
   await page.click('#codego');
+  await page.locator('#create, #msg:not(:empty)').first().waitFor();
+  if (!(await page.locator('#create').count())) throw new Error('Code was refused: ' + (await page.locator('#msg').textContent()));
   await page.click('#create');
+  await page.locator('[data-tab], #msg:not(:empty)').first().waitFor();
+  if (!(await page.locator('[data-tab]').count())) throw new Error('Login was refused: ' + (await page.locator('#msg').textContent()));
 }
 
 /** What this page's signed in user can read straight from the API. */
