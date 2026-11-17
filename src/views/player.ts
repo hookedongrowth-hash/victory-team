@@ -24,7 +24,9 @@ export function showPlayer(root: HTMLElement, me: Me, onSignOut: () => void) {
   let error = '';
   let loadError = '';
 
+  let loadSeq = 0;
   const load = async () => {
+    const seq = ++loadSeq;
     const [sq, fb, rd, fl, rv] = await Promise.all([
       sb.rpc('squad'),
       sb.from('feedback').select('id, audience, topic, ref_date, title, body, created_at').order('created_at', { ascending: false }),
@@ -32,6 +34,7 @@ export function showPlayer(root: HTMLElement, me: Me, onSignOut: () => void) {
       sb.from('files').select('*').order('uploaded_at', { ascending: false }),
       sb.from('reflections').select('id, match_date, opponent, rating, went_well, work_on, match_thoughts').order('match_date', { ascending: false }),
     ]);
+    if (seq !== loadSeq) return;
     const bad = sq.error || fb.error || rd.error || fl.error || rv.error;
     if (bad) { loadError = 'Could not load your page. Check your connection.'; draw(); return; }
     squad = (sq.data ?? []) as Person[];

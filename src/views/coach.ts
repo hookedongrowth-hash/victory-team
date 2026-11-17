@@ -25,7 +25,9 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
   let up = { kind: 'tactics', title: '', date: '' };
   let loadError = '';
 
+  let loadSeq = 0;
   const load = async () => {
+    const seq = ++loadSeq;
     const [s, r, p, n, f, rd, fl] = await Promise.all([
       sb.rpc('coach_squad'),
       sb.from('reflections').select('*, player:members!player_id(name)').order('match_date', { ascending: false }),
@@ -35,6 +37,7 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
       sb.from('feedback_reads').select('feedback_id, member_id'),
       sb.from('files').select('*').order('uploaded_at', { ascending: false }),
     ]);
+    if (seq !== loadSeq) return; // a newer load is on its way
     if ([s, r, p, n, f, rd, fl].some((x) => x.error)) { loadError = 'Could not load. Check your connection.'; draw(); return; }
     squad = s.data as Squad[]; reflections = r.data!; praise = p.data!; notes = n.data!;
     feedback = f.data!; reads = rd.data!; files = fl.data as FileRow[];

@@ -81,7 +81,8 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     for (const name of ['Ann', 'Bea']) {
       await coach.fill('#new-name', name);
       await coach.click('#add-player');
-      await expect(coach.locator(`[data-member="${name}"]`)).toBeVisible();
+      await coach.locator(`[data-member="${name}"], #msg:not(:empty)`).first().waitFor({ timeout: 15_000 });
+      await expect(coach.locator(`[data-member="${name}"]`), (await coach.locator('#msg').textContent()) ?? '').toBeVisible();
       await coach.click(`[data-code="${name}"]`);
       await expect(coach.locator('#code-card')).toContainText(`for ${name}`);
       const code = (await coach.locator('#code-value').textContent())!.trim();
