@@ -104,7 +104,7 @@ jobs:
         run: |
           url=$(scripts/db-url.sh)
           echo "::add-mask::$url"
-          supabase db push --db-url "$url" --include-all
+          supabase db push --db-url "$url" --include-all --yes
       - if: steps.have.outputs.ok == 'true'
         name: Make sure the coach has a first code
         run: |
