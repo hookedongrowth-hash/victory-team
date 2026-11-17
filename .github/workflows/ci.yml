@@ -32,7 +32,7 @@ jobs:
   e2e:
     name: Browser test on a local database
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -41,7 +41,8 @@ jobs:
       - uses: supabase/setup-cli@v1
         with: { version: latest }
       - name: Start the local stack
-        run: supabase start
+        timeout-minutes: 8
+        run: supabase start -x studio,imgproxy,mailpit,realtime,logflare,vector,postgres-meta,supavisor
       - name: Collect local keys
         run: |
           supabase status -o env > /tmp/sb.env

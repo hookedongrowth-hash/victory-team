@@ -36,3 +36,15 @@ policy = "per_worker"
 
 [functions.auth]
 verify_jwt = false
+
+[studio]
+enabled = false
+
+[inbucket]
+enabled = false
+
+[realtime]
+enabled = false
+
+[analytics]
+enabled = false
