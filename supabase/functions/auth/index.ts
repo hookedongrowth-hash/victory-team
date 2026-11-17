@@ -39,7 +39,7 @@ const MSG = {
 };
 
 function json(body: unknown, status: number, origin: string | null) {
-  return new Response(JSON.stringify(body), {
+  return new Response(status === 204 ? null : JSON.stringify(body), {
     status,
     headers: {
       'content-type': 'application/json',
