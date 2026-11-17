@@ -39,7 +39,7 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - uses: supabase/setup-cli@v1
-        with: { version: latest }
+        with: { version: 3.2.0 }
       - name: Start the local stack
         timeout-minutes: 8
         run: supabase start -x studio,imgproxy,mailpit,realtime,logflare,vector,postgres-meta,supavisor
@@ -98,7 +98,7 @@ jobs:
           if [ -n "$SUPABASE_DB_PASSWORD" ] && [ -n "$SUPABASE_PROJECT_REF" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "No database password set yet. Skipping."; fi
       - if: steps.have.outputs.ok == 'true'
         uses: supabase/setup-cli@v1
-        with: { version: latest }
+        with: { version: 3.2.0 }
       - if: steps.have.outputs.ok == 'true'
         name: Apply migrations
         run: |
