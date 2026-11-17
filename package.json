@@ -1,0 +1,26 @@
+{
+  "name": "victory-team",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --port 4173 --strictPort",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@simplewebauthn/browser": "13.1.0",
+    "@supabase/supabase-js": "2.45.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.2.12",
+    "@playwright/test": "1.47.2",
+    "@types/node": "20.16.5",
+    "typescript": "5.6.2",
+    "vite": "5.4.8",
+    "vitest": "2.1.1"
+  }
+}

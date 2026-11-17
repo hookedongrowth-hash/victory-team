@@ -1,0 +1,84 @@
+/* Royal Victory H.C. light brand. Tokens from the Dragons app's Victory page. */
+:root {
+  --vic-red: #DF0C38; --vic-red-dk: #B80A2E; --vic-ink: #1C1C1B; --vic-muted: #6B7076;
+  --vic-border: #D9DBDC; --vic-paper: #F8F6F4;
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--vic-paper); }
+.vic { min-height: 100vh; min-height: 100dvh; color: var(--vic-ink); padding-bottom: 48px;
+  font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 16px; line-height: 1.45; }
+.vic-header { display: flex; align-items: center; gap: 12px; padding: calc(14px + var(--safe-top)) 16px 14px;
+  background: #fff; border-bottom: 3px solid var(--vic-red); position: sticky; top: 0; z-index: 5; }
+.vic-header__crest { width: 40px; height: auto; flex: 0 0 auto; }
+.vic-header__club { font-weight: 700; font-size: 15px; letter-spacing: -0.01em; }
+.vic-header__team { font-size: 12px; color: var(--vic-muted); }
+.vic-whoami { margin-left: auto; background: none; border: 1px solid var(--vic-border); border-radius: 999px;
+  padding: 8px 12px; font-size: 12px; color: var(--vic-muted); cursor: pointer; white-space: nowrap; min-height: 36px; }
+.vic-main { padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+.vic-main--centred { padding-top: 40px; }
+.vic-h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
+.vic-h2 { font-size: 17px; margin: 28px 0 10px; }
+.vic-h3 { font-size: 15px; margin: 8px 0 0; }
+.vic-lede { color: var(--vic-muted); margin: 0 0 16px; }
+.vic-empty { color: var(--vic-muted); }
+.vic-note { background: #fff; border-left: 3px solid var(--vic-red); padding: 8px 12px; margin: 8px 0 12px; font-size: 14px; }
+.vic-note:empty { display: none; }
+.vic-error { color: var(--vic-red-dk); min-height: 1.2em; margin: 8px 0; font-size: 14px; }
+.vic-card { background: #fff; border: 1px solid var(--vic-border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.vic-card p { margin: 8px 0 0; }
+.vic-card__head { display: flex; align-items: center; margin-bottom: 12px; font-size: 15px; font-weight: 700; }
+.vic-step { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 50%;
+  margin-right: 8px; background: var(--vic-ink); color: #fff; font-size: 11px; font-weight: 700; flex: 0 0 auto; }
+.vic-field { display: block; margin-bottom: 14px; }
+.vic-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.vic-label em { font-weight: 400; color: var(--vic-muted); font-style: normal; }
+input[type=text], input[type=date], select, textarea, .field {
+  width: 100%; font: inherit; font-size: 16px; padding: 12px; border: 1px solid var(--vic-border); border-radius: 10px;
+  background: #fff; color: var(--vic-ink); }
+textarea { resize: vertical; }
+input:focus, textarea:focus, select:focus, button:focus-visible { outline: 2px solid var(--vic-red); outline-offset: 2px; }
+.vic-code { text-align: center; font-size: 24px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 700; }
+.vic-code-big { font-size: 30px; font-weight: 700; letter-spacing: 0.12em; text-align: center; padding: 16px 0; user-select: all; }
+.vic-stars { display: flex; gap: 8px; }
+.vic-star { flex: 1 1 0; padding: 14px 0; font-size: 26px; border-radius: 12px; border: 1px solid var(--vic-border);
+  background: #fff; color: var(--vic-muted); cursor: pointer; }
+.vic-star--on { background: var(--vic-red); border-color: var(--vic-red); color: #fff; }
+.vic-scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--vic-muted); margin-top: 6px; }
+.vic-mate, .vic-coach { background: #fff; border: 1px solid var(--vic-border); border-radius: 14px; padding: 16px; margin-bottom: 12px; }
+.vic-mate__who { margin-bottom: 6px; }
+.vic-mate__ask, .vic-coach__ask { color: var(--vic-muted); font-size: 14px; margin: 0 0 10px; }
+.vic-nothing { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--vic-border); background: #fff;
+  font: inherit; cursor: pointer; margin-bottom: 10px; }
+.vic-nothing--on { background: var(--vic-ink); color: #fff; border-color: var(--vic-ink); }
+.vic-send { display: block; width: 100%; min-height: 48px; padding: 14px; border: 0; border-radius: 12px; margin-top: 10px;
+  background: var(--vic-red); color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.vic-send:disabled { opacity: 0.6; }
+.vic-send--ghost { background: #fff; color: var(--vic-ink); border: 1px solid var(--vic-border); }
+.vic-tabs { display: flex; gap: 4px; padding: 8px 12px 0; background: #fff; border-bottom: 1px solid var(--vic-border);
+  position: sticky; top: calc(69px + var(--safe-top)); z-index: 4; overflow-x: auto; }
+.vic-tab { position: relative; flex: 1 0 auto; border: 0; background: none; padding: 12px 14px; font: inherit; font-size: 14px;
+  font-weight: 600; color: var(--vic-muted); border-bottom: 3px solid transparent; cursor: pointer; white-space: nowrap; }
+.vic-tab--on { color: var(--vic-ink); border-bottom-color: var(--vic-red); }
+.vic-dot { display: inline-block; margin-left: 6px; min-width: 18px; padding: 0 5px; border-radius: 9px; background: var(--vic-red);
+  color: #fff; font-size: 11px; line-height: 18px; text-align: center; }
+.vic-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.vic-row--left { justify-content: flex-start; gap: 16px; margin-top: 8px; }
+.vic-chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--vic-red); color: #fff; font-size: 12px; font-weight: 600; }
+.vic-chip--plain { background: var(--vic-paper); color: var(--vic-ink); border: 1px solid var(--vic-border); }
+.vic-chip--new { background: var(--vic-ink); }
+.vic-meta { color: var(--vic-muted); font-size: 13px; }
+.vic-body { white-space: pre-wrap; }
+.vic-link { background: none; border: 0; padding: 8px 0; font: inherit; font-size: 14px; font-weight: 600; color: var(--vic-red-dk); cursor: pointer; min-height: 36px; }
+.vic-link--danger { color: var(--vic-muted); }
+.vic-member--off { opacity: 0.6; }
+.vic-docs { display: grid; gap: 8px; }
+.vic-docrow { background: #fff; border: 1px solid var(--vic-border); border-radius: 12px; padding: 4px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; }
+.vic-doc { display: flex; gap: 12px; align-items: center; flex: 1 1 100%; text-align: left; background: none; border: 0; padding: 10px 0; font: inherit; cursor: pointer; }
+.vic-doc__icon { font-size: 22px; color: var(--vic-red); }
+.vic-doc__text { display: flex; flex-direction: column; }
+.vic-doc__text span { font-size: 12px; color: var(--vic-muted); }
+.vic-tick { width: 64px; height: 64px; border-radius: 50%; background: var(--vic-red); color: #fff; font-size: 34px;
+  display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+.vic-main--centred { text-align: center; }
+@media (prefers-reduced-motion: no-preference) { .vic-card { transition: box-shadow .15s; } }

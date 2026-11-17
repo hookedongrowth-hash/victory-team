@@ -1,0 +1,140 @@
+name: CI and deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit and security tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://example.invalid
+          VITE_SUPABASE_ANON_KEY: not-a-real-key
+
+  e2e:
+    name: Browser test on a local database
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - name: Start the local stack
+        run: supabase start
+      - name: Collect local keys
+        run: |
+          supabase status -o env > /tmp/sb.env
+          {
+            echo "SB_URL=$(grep '^API_URL=' /tmp/sb.env | cut -d= -f2- | tr -d '\"')"
+            echo "SB_ANON=$(grep '^ANON_KEY=' /tmp/sb.env | cut -d= -f2- | tr -d '\"')"
+            echo "SB_SERVICE=$(grep '^SERVICE_ROLE_KEY=' /tmp/sb.env | cut -d= -f2- | tr -d '\"')"
+          } >> "$GITHUB_ENV"
+      - name: Serve the sign in function
+        run: |
+          printf 'RP_ID=localhost\nORIGIN=http://localhost:4173\nALLOWED_ORIGINS=http://localhost:4173\n' > /tmp/fn.env
+          nohup supabase functions serve --no-verify-jwt --env-file /tmp/fn.env > /tmp/fn.log 2>&1 &
+          for i in $(seq 1 60); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' -X OPTIONS -H 'origin: http://localhost:4173' "$SB_URL/functions/v1/auth" || true)
+            [ "$code" = "204" ] && exit 0
+            sleep 2
+          done
+          cat /tmp/fn.log; exit 1
+      - name: Build the app against the local stack
+        run: npm run build
+        env:
+          VITE_BASE: /
+          VITE_SUPABASE_URL: ${{ env.SB_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ env.SB_ANON }}
+      - run: npx playwright install --with-deps chromium
+      - name: Browser test
+        run: npx playwright test
+        env:
+          E2E_SUPABASE_URL: ${{ env.SB_URL }}
+          E2E_SERVICE_KEY: ${{ env.SB_SERVICE }}
+          E2E_ANON_KEY: ${{ env.SB_ANON }}
+      - if: failure()
+        run: tail -n 80 /tmp/fn.log || true
+
+  backend:
+    name: Database and sign in function
+    needs: [test, e2e]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      COACH_FIRST_CODE: ${{ secrets.COACH_FIRST_CODE }}
+      COACH_NAME: ${{ vars.COACH_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - name: Check the project is connected
+        id: have
+        run: |
+          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_REF" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "No Supabase project connected yet. Skipping."; fi
+      - if: steps.have.outputs.ok == 'true'
+        run: node scripts/migrate.mjs
+      - if: steps.have.outputs.ok == 'true'
+        run: node scripts/configure-project.mjs
+      - if: steps.have.outputs.ok == 'true'
+        uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - if: steps.have.outputs.ok == 'true'
+        name: Deploy the sign in function
+        run: |
+          supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
+            RP_ID=hookedongrowth-hash.github.io \
+            ORIGIN=https://hookedongrowth-hash.github.io \
+            ALLOWED_ORIGINS=https://hookedongrowth-hash.github.io
+          supabase functions deploy auth --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+      - if: steps.have.outputs.ok == 'true'
+        run: node scripts/seed-coach.mjs
+
+  pages:
+    name: Publish to GitHub Pages
+    needs: [test, e2e, backend]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && !failure() && !cancelled()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npm run build
+        env:
+          # Both are public by design. Data is protected by row level security.
+          VITE_SUPABASE_URL: ${{ vars.SUPABASE_PROJECT_REF && format('https://{0}.supabase.co', vars.SUPABASE_PROJECT_REF) || '' }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+      - uses: actions/upload-pages-artifact@v3
+        with: { path: dist }
+      - id: deploy
+        uses: actions/deploy-pages@v4
