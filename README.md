@@ -39,13 +39,15 @@ The browser test needs a local Supabase stack (Docker), so it runs in CI. See `.
 
 ## Deploy
 
-Pushing to `main` runs the tests, then applies migrations, deploys the sign in function, seeds the coach code, and publishes to GitHub Pages. Nothing is applied by hand.
+Pushing to `main` runs the tests, then applies the migrations (`supabase db push`, project scoped database password only), seeds the coach code, and publishes to GitHub Pages. Schema is never changed by hand.
+
+**The sign in function** (`supabase/functions/auth`) is deployed with the Supabase deploy tool on this project, not by the Action, so no account wide token is ever stored in GitHub. After changing it, redeploy it that way (`verify_jwt` off, files `index.ts` and `lib.ts`). Its defaults already point at the Pages address.
 
 GitHub settings it relies on:
 
 | Kind | Name | What |
 | --- | --- | --- |
-| secret | `SUPABASE_ACCESS_TOKEN` | a Supabase access token |
+| secret | `SUPABASE_DB_PASSWORD` | this project's database password (this project only) |
 | secret | `COACH_FIRST_CODE` | the coach's first one-time code (10 characters) |
 | variable | `SUPABASE_PROJECT_REF` | the project reference |
 | variable | `SUPABASE_ANON_KEY` | the project's publishable key (public by design) |

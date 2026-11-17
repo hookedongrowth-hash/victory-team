@@ -62,7 +62,7 @@ export async function refused(db: PGlite, who: Who, sql: string, params: any[] =
 }
 
 export async function addUser(db: PGlite, name: string, role: 'coach' | 'player') {
-  const u = await db.query<{ id: string }>(`insert into auth.users (email) values ($1) returning id`, [`${name}@x.invalid`]);
+  const u = await db.query<{ id: string }>(`insert into auth.users (email) values ($1) returning id`, [`${name}@members.victory.invalid`]);
   const m = await db.query<{ id: string }>(
     `insert into public.members (name, role, user_id) values ($1, $2, $3) returning id`, [name, role, u.rows[0].id]);
   return { userId: u.rows[0].id, memberId: m.rows[0].id };

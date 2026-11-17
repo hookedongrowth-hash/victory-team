@@ -79,13 +79,13 @@ jobs:
         run: tail -n 80 /tmp/fn.log || true
 
   backend:
-    name: Database and sign in function
+    name: Apply database migrations
     needs: [test, e2e]
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
       COACH_FIRST_CODE: ${{ secrets.COACH_FIRST_CODE }}
       COACH_NAME: ${{ vars.COACH_NAME }}
     steps:
@@ -95,24 +95,22 @@ jobs:
       - name: Check the project is connected
         id: have
         run: |
-          if [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_REF" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "No Supabase project connected yet. Skipping."; fi
-      - if: steps.have.outputs.ok == 'true'
-        run: node scripts/migrate.mjs
-      - if: steps.have.outputs.ok == 'true'
-        run: node scripts/configure-project.mjs
+          if [ -n "$SUPABASE_DB_PASSWORD" ] && [ -n "$SUPABASE_PROJECT_REF" ]; then echo "ok=true" >> "$GITHUB_OUTPUT"; else echo "No database password set yet. Skipping."; fi
       - if: steps.have.outputs.ok == 'true'
         uses: supabase/setup-cli@v1
         with: { version: latest }
       - if: steps.have.outputs.ok == 'true'
-        name: Deploy the sign in function
+        name: Apply migrations
         run: |
-          supabase secrets set --project-ref "$SUPABASE_PROJECT_REF" \
-            RP_ID=hookedongrowth-hash.github.io \
-            ORIGIN=https://hookedongrowth-hash.github.io \
-            ALLOWED_ORIGINS=https://hookedongrowth-hash.github.io
-          supabase functions deploy auth --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
+          url=$(scripts/db-url.sh)
+          echo "::add-mask::$url"
+          supabase db push --db-url "$url" --include-all
       - if: steps.have.outputs.ok == 'true'
-        run: node scripts/seed-coach.mjs
+        name: Make sure the coach has a first code
+        run: |
+          url=$(scripts/db-url.sh)
+          echo "::add-mask::$url"
+          node scripts/seed-coach.mjs | psql "$url" -v ON_ERROR_STOP=1 -q
 
   pages:
     name: Publish to GitHub Pages

@@ -207,6 +207,11 @@ describe('guard rails for the future', () => {
       `select tablename from pg_tables where schemaname = 'public' and not rowsecurity`);
     expect(r.rows).toEqual([]);
   });
+  it('nobody can sign themselves up with their own email', async () => {
+    // As the database owner, the way the auth service writes users.
+    await expect(db.exec(`insert into auth.users (email) values ('someone@example.com')`)).rejects.toThrow(/closed/);
+    await expect(db.exec(`insert into auth.users (email) values (null)`)).rejects.toThrow(/closed/);
+  });
   it('players and anon cannot truncate', async () => {
     expect(await refused(db, ann.userId, `truncate public.feedback`)).toBe(true);
     expect(await refused(db, ann.userId, `truncate public.files`)).toBe(true);
