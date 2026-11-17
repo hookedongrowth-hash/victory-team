@@ -4,7 +4,7 @@
 # Needs SUPABASE_PROJECT_REF and SUPABASE_DB_PASSWORD. Prints nothing else.
 set -euo pipefail
 ref="${SUPABASE_PROJECT_REF:?}"
-pw="${SUPABASE_DB_PASSWORD:?}"
+pw=$(printf %s "${SUPABASE_DB_PASSWORD:?}" | tr -d "\r\n")
 enc=$(node -e 'process.stdout.write(encodeURIComponent(process.argv[1]))' "$pw")
 for host in "${SUPABASE_POOLER_HOST:-}" aws-0-eu-central-1.pooler.supabase.com aws-1-eu-central-1.pooler.supabase.com; do
   [ -z "$host" ] && continue
