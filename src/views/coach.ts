@@ -217,7 +217,7 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
 
   const tabsNav = () => {
     const t = (key: Tab, label: string) => h('button', { class: `vic-tab ${tab === key ? 'vic-tab--on' : ''}`, type: 'button', 'data-tab': key,
-      onclick: () => { tab = key; message = ''; draw(); } }, label);
+      onclick: () => { tab = key; message = ''; draw(); load(); } }, label);
     return h('nav', { class: 'vic-tabs' }, t('reflections', 'Reviews'), t('feedback', 'Feedback'), t('files', 'Files'), t('squad', 'Squad'));
   };
 
