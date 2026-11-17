@@ -25,6 +25,19 @@ export function clear(el: Element) { while (el.firstChild) el.removeChild(el.fir
 
 export function mount(root: Element, ...nodes: Node[]) { clear(root); root.append(...nodes); }
 
+/** Like mount, but a redraw behind the scenes does not take the cursor from someone typing. */
+export function remount(root: Element, ...nodes: Node[]) {
+  const a = document.activeElement as (HTMLInputElement | HTMLTextAreaElement | null);
+  const id = a && a.id && root.contains(a) ? a.id : '';
+  const from = id ? a!.selectionStart : null, to = id ? a!.selectionEnd : null;
+  mount(root, ...nodes);
+  if (!id) return;
+  const again = document.getElementById(id) as (HTMLInputElement | HTMLTextAreaElement | null);
+  if (!again) return;
+  again.focus();
+  try { if (from != null && to != null) again.setSelectionRange(from, to); } catch { /* not a text field */ }
+}
+
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '';
   const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);

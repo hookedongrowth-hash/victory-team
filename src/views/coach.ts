@@ -1,4 +1,4 @@
-import { h, mount, formatDate } from '../dom';
+import { h, remount, formatDate } from '../dom';
 import { sb, say, type Me } from '../api';
 import { fileCard, KIND_LABEL, KIND_ORDER, type FileRow } from '../files-ui';
 import { header } from './signin';
@@ -246,7 +246,7 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
     const out = h('button', { class: 'vic-whoami', id: 'signout', type: 'button', onclick: onSignOut }, `${me.name} · sign out`);
     const body = loadError ? h('main', { class: 'vic-main' }, h('p', { class: 'vic-error' }, loadError), h('button', { class: 'vic-send vic-send--ghost', onclick: load }, 'Try again'))
       : tab === 'reflections' ? reflectionsView() : tab === 'feedback' ? feedbackView() : tab === 'files' ? filesView() : squadView();
-    mount(root, header('coach', out), tabsNav(), body);
+    remount(root, header('coach', out), tabsNav(), body);
   };
 
   draw();
