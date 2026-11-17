@@ -23,6 +23,7 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
   let newCode: { id: string; name: string; code: string } | null = null;
   let fb = { audience: 'team', topic: 'general', date: '', title: '', body: '' };
   let up = { kind: 'tactics', title: '', date: '' };
+  let newName = '';
   let loadError = '';
 
   let loadSeq = 0;
@@ -188,7 +189,8 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
       : m.invite_expires_at ? `Code waiting until ${formatDate(m.invite_expires_at)}` : 'No code yet';
 
   const squadView = () => {
-    const name = h('input', { type: 'text', id: 'new-name', maxlength: 60, placeholder: 'First name' });
+    const name = h('input', { type: 'text', id: 'new-name', maxlength: 60, placeholder: 'First name', value: newName });
+    name.addEventListener('input', () => { newName = name.value; });
     return h('main', { class: 'vic-main' },
       h('h1', { class: 'vic-h1' }, 'Squad'),
       newCode ? h('div', { class: 'vic-card vic-code-card', id: 'code-card' },
@@ -214,7 +216,8 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
       h('div', { class: 'vic-card' },
         h('h2', { class: 'vic-h2' }, 'Add a player'), field('Name', name),
         h('button', { class: 'vic-send', id: 'add-player', disabled: busy, onclick: () => act(async () => {
-          const { error } = await sb.rpc('add_player', { p_name: name.value }); if (error) throw error;
+          const { error } = await sb.rpc('add_player', { p_name: newName }); if (error) throw error;
+          newName = '';
         }, 'Added. Now get her a code.') }, 'Add player')));
   };
 
