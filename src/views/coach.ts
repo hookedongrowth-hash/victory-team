@@ -119,7 +119,15 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
       }) : h('p', { class: 'vic-empty' }, 'Nothing sent yet.'));
   };
 
+  // What is on screen is the truth. Read it at the moment of sending, so a
+  // refresh behind the scenes can never change who a message goes to.
+  const readForm = () => {
+    const v = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value;
+    fb = { audience: v('fb-to') ?? fb.audience, topic: v('fb-topic') ?? fb.topic, date: v('fb-date') ?? fb.date,
+      title: v('fb-title') ?? fb.title, body: v('fb-body') ?? fb.body };
+  };
   const sendFeedback = () => {
+    readForm();
     if (!fb.body.trim()) { message = 'Write something first.'; draw(); return; }
     act(async () => {
       const { error } = await sb.from('feedback').insert({
@@ -234,6 +242,7 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
   };
 
   const draw = () => {
+    if (tab === 'feedback' && document.getElementById('fb-to')) readForm();
     const out = h('button', { class: 'vic-whoami', id: 'signout', type: 'button', onclick: onSignOut }, `${me.name} · sign out`);
     const body = loadError ? h('main', { class: 'vic-main' }, h('p', { class: 'vic-error' }, loadError), h('button', { class: 'vic-send vic-send--ghost', onclick: load }, 'Try again'))
       : tab === 'reflections' ? reflectionsView() : tab === 'feedback' ? feedbackView() : tab === 'files' ? filesView() : squadView();
