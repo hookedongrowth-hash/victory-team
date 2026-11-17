@@ -71,6 +71,7 @@ jobs:
       - name: Browser test
         run: npx playwright test
         env:
+          VITE_BASE: /
           E2E_SUPABASE_URL: ${{ env.SB_URL }}
           E2E_SERVICE_KEY: ${{ env.SB_SERVICE }}
           E2E_ANON_KEY: ${{ env.SB_ANON }}
