@@ -143,6 +143,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     await coach.click('[data-tab="feedback"]');
     await coach.selectOption('#fb-to', { label: 'Ann' });
     await coach.fill('#fb-body', 'Only for Ann: nice pressing');
+    console.log('DIAG coach', await coach.evaluate(() => { const e = document.getElementById('fb-to') as HTMLSelectElement; return JSON.stringify({ v: e.value, o: [...e.options].map((x) => [x.value.slice(0, 4), x.text, x.selected]) }); }));
     await coach.click('#fb-send');
     await expect(coach.locator('#msg')).toHaveText('Sent.');
     await coach.selectOption('#fb-to', { label: 'The whole team' });
