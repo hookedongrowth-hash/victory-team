@@ -83,6 +83,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
       await coach.click('#add-player');
       await expect(coach.locator(`[data-member="${name}"]`)).toBeVisible();
       await coach.click(`[data-code="${name}"]`);
+      await expect(coach.locator('#code-card')).toContainText(`for ${name}`);
       const code = (await coach.locator('#code-value').textContent())!.trim();
       expect(code).toMatch(/^[A-Z0-9]{5}-[A-Z0-9]{5}$/);
       if (name === 'Ann') annCode = code; else beaCode = code;
