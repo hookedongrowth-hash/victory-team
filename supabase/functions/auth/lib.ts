@@ -18,9 +18,11 @@ export const LIMITS = {
   /** Wrong codes from one address in an hour. */
   perIpFailures: 12,
   /** Wrong codes from everywhere in an hour, so a spread-out guess cannot work. */
-  globalFailures: 200,
+  globalFailures: 3000,
   /** Passkey sign-in failures from one address in an hour. */
   loginPerIp: 40,
+  /** Sign in prompts requested from one address in an hour. */
+  loginStartPerIp: 150,
   challengeMinutes: 5,
 };
 
@@ -29,8 +31,12 @@ export function tooManyFailures(ipFailures: number, globalFailures: number): boo
 }
 
 export function clientIp(headers: Headers): string {
-  const fwd = headers.get('x-forwarded-for') ?? headers.get('cf-connecting-ip') ?? '';
-  return fwd.split(',')[0].trim() || 'unknown';
+  // The platform's own header first. Otherwise the LAST forwarded entry, which
+  // the proxy added, never the first, which a caller can write themselves.
+  const cf = headers.get('cf-connecting-ip');
+  if (cf) return cf.trim();
+  const parts = (headers.get('x-forwarded-for') ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return parts[parts.length - 1] || 'unknown';
 }
 
 /** Which origins may call the function. Exact match only. */

@@ -200,3 +200,21 @@ describe('one-time codes', () => {
     expect((await db.query(`select 1 from public.invites where member_id = $1`, [cat.memberId])).rows).toHaveLength(1);
   });
 });
+
+describe('guard rails for the future', () => {
+  it('every table in public has row level security switched on', async () => {
+    const r = await db.query<{ tablename: string }>(
+      `select tablename from pg_tables where schemaname = 'public' and not rowsecurity`);
+    expect(r.rows).toEqual([]);
+  });
+  it('players and anon cannot truncate', async () => {
+    expect(await refused(db, ann.userId, `truncate public.feedback`)).toBe(true);
+    expect(await refused(db, ann.userId, `truncate public.files`)).toBe(true);
+  });
+  it('functions open to anon are only ping', async () => {
+    const r = await db.query<{ proname: string }>(
+      `select p.proname from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+       where n.nspname = 'public' and has_function_privilege('anon', p.oid, 'execute') order by 1`);
+    expect(r.rows.map((x) => x.proname)).toEqual(['ping']);
+  });
+});

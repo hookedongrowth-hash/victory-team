@@ -24,10 +24,12 @@ describe('limits', () => {
   it('stops one address and a spread-out guess', () => {
     expect(tooManyFailures(0, 0)).toBe(false);
     expect(tooManyFailures(12, 12)).toBe(true);
-    expect(tooManyFailures(1, 200)).toBe(true);
+    expect(tooManyFailures(1, 3000)).toBe(true);
+    expect(tooManyFailures(1, 200)).toBe(false);
   });
-  it('reads the first forwarded address', () => {
-    expect(clientIp(new Headers({ 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }))).toBe('1.2.3.4');
+  it('trusts the platform header, then the last forwarded address, never the first', () => {
+    expect(clientIp(new Headers({ 'cf-connecting-ip': '9.9.9.9', 'x-forwarded-for': '1.2.3.4' }))).toBe('9.9.9.9');
+    expect(clientIp(new Headers({ 'x-forwarded-for': '6.6.6.6, 5.6.7.8' }))).toBe('5.6.7.8');
     expect(clientIp(new Headers())).toBe('unknown');
   });
 });

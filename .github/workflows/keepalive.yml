@@ -2,7 +2,7 @@ name: Keep the free database awake
 
 on:
   schedule:
-    - cron: '17 6 * * 1'   # every Monday
+    - cron: '17 6 * * 1,4'   # Monday and Thursday
   workflow_dispatch:
 
 permissions:

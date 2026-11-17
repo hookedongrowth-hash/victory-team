@@ -33,7 +33,8 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
       sb.rpc('coach_squad'),
       sb.from('reflections').select('*, player:members!player_id(name)').order('match_date', { ascending: false }),
       sb.from('teammate_praise').select('id, match_date, note, from:members!from_id(name), about:members!about_id(name)').order('match_date', { ascending: false }),
-      sb.from('coach_notes').select('*').order('match_date', { ascending: false }),
+      // Ties are shown in id order, which is random, so a note cannot be matched to a review by position.
+      sb.from('coach_notes').select('*').order('match_date', { ascending: false }).order('id'),
       sb.from('feedback').select('*, player:members!player_id(name)').order('created_at', { ascending: false }),
       sb.from('feedback_reads').select('feedback_id, member_id'),
       sb.from('files').select('*').order('uploaded_at', { ascending: false }),
@@ -171,7 +172,12 @@ export function showCoach(root: HTMLElement, me: Me, onSignOut: () => void) {
     if (file.size > 50 * 1024 * 1024) throw new Error('That file is over 50 MB. Make it smaller.');
     const ext = (file.name.match(/\.[A-Za-z0-9]+$/)?.[0] ?? '').toLowerCase();
     const path = `${crypto.randomUUID()}${ext}`;
-    const mime = file.type || (ext === '.pdf' ? 'application/pdf' : 'application/octet-stream');
+    const BY_EXT: Record<string, string> = {
+      '.pdf': 'application/pdf', '.ppt': 'application/vnd.ms-powerpoint', '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+      '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    };
+    const mime = BY_EXT[ext] ?? file.type;
+    if (!mime) throw new Error('That file type is not allowed. Use PDF, PowerPoint or a picture.');
     const put = await sb.storage.from('team-files').upload(path, file, { contentType: mime });
     if (put.error) throw new Error('The upload failed. Check the file type and size.');
     const { error } = await sb.from('files').insert({

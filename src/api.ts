@@ -79,7 +79,7 @@ export async function loadMe(): Promise<Me | null> {
 }
 
 export async function signOut() {
-  await sb.auth.signOut();
+  await sb.auth.signOut({ scope: 'local' });
 }
 
 export function say(err: unknown): string {

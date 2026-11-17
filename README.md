@@ -54,4 +54,4 @@ GitHub settings it relies on:
 ## Notes
 
 - Passkeys belong to the web address. If the site ever moves to a different address, everyone needs a new code.
-- A free Supabase project pauses after a week without activity. `keepalive.yml` pings it every Monday.
+- A free Supabase project pauses after a week without activity. `keepalive.yml` pings it every Monday and Thursday.

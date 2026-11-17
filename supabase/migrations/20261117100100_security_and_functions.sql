@@ -28,6 +28,8 @@ revoke all on public.members, public.reflections, public.teammate_praise,
 revoke insert, update, delete, truncate on public.members, public.reflections,
   public.teammate_praise, public.coach_notes, public.feedback_reads from authenticated;
 
+revoke truncate, references, trigger on all tables in schema public from anon, authenticated;
+
 -- ── Who is asking ────────────────────────────────────────────────────────────
 create function public.me() returns uuid
 language sql stable security definer set search_path = '' as $$

@@ -1,0 +1,30 @@
+name: Give the coach a new code
+
+# For a coach who lost her only phone. Put a NEW 10 character code in the
+# COACH_FIRST_CODE secret first (letters and digits, no I, L, O, 0 or 1),
+# then run this. The code works once and lasts 14 days.
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type RESET to confirm'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  reset:
+    if: github.event.inputs.confirm == 'RESET'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ vars.SUPABASE_PROJECT_REF }}
+      COACH_FIRST_CODE: ${{ secrets.COACH_FIRST_CODE }}
+      COACH_NAME: ${{ vars.COACH_NAME }}
+      COACH_RESET: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node scripts/seed-coach.mjs

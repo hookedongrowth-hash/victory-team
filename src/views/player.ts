@@ -108,7 +108,7 @@ export function showPlayer(root: HTMLElement, me: Me, onSignOut: () => void) {
         h('div', { class: 'vic-mate__who' }, h('strong', null, mate.name)),
         h('p', { class: 'vic-mate__ask' }, 'Say one good thing about her. Everyone gets named by somebody. Only the coach reads these.'),
         bind(h('textarea', { id: 'note', rows: 3, maxlength: 2000, placeholder: 'Something she did well today' }, form.note), 'note')) : null,
-      h('section', { class: 'vic-coach' },
+      existing ? h('p', { class: 'vic-note' }, 'Your anonymous note for this match was already sent, so it is not asked again.') : h('section', { class: 'vic-coach' },
         h('div', { class: 'vic-card__head' }, h('span', { class: 'vic-step' }, '5'), 'Anything for the coach?'),
         h('p', { class: 'vic-coach__ask' }, 'This one is anonymous. The coach sees the words, not who wrote them. Happy as things are is a real answer, so say that rather than skipping.'),
         h('button', { class: `vic-nothing ${form.coachNothing ? 'vic-nothing--on' : ''}`, id: 'nothing', type: 'button',
@@ -141,7 +141,8 @@ export function showPlayer(root: HTMLElement, me: Me, onSignOut: () => void) {
       p_match_date: form.date, p_opponent: form.opponent, p_rating: form.rating,
       p_went_well: form.wentWell, p_work_on: form.workOn, p_match_thoughts: form.thoughts || null,
       p_mate_id: mate?.id ?? null, p_mate_note: mate ? form.note : null,
-      p_coach_nothing: form.coachNothing, p_coach_body: form.coachNothing ? null : form.coachBody || null,
+      p_coach_nothing: reviews.some((r) => r.match_date === form.date) ? false : form.coachNothing,
+      p_coach_body: reviews.some((r) => r.match_date === form.date) || form.coachNothing ? null : form.coachBody || null,
     });
     sending = false;
     if (err) { error = say(err); draw(); return; }

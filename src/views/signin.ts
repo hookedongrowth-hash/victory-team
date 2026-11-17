@@ -16,13 +16,19 @@ export function showSignIn(root: HTMLElement, onDone: () => void, note = '') {
   let ticket: LoginTicket | null = null;
   let claim: { challengeId: string; options: any; name: string } | null = null;
   let busy = false;
+  let ready = false;
   let error = note;
 
   // Get the sign-in options ready before the tap, so the prompt opens at once.
   const warm = () => {
     if (!configured || !passkeysSupported()) return;
-    prepareLogin().then((t) => { ticket = t; }).catch(() => { ticket = null; });
+    prepareLogin().then((t) => { ticket = t; ready = true; if (mode === 'login' && !busy) draw(); })
+      .catch(() => { ticket = null; ready = true; if (mode === 'login' && !busy) draw(); });
   };
+  // Keep the options fresh, so the phone's prompt always opens straight from the tap.
+  const refresh = () => { if (mode === 'login' && !busy && (!ticket || Date.now() - ticket.at > 2 * 60_000)) warm(); };
+  setInterval(refresh, 60_000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
 
   const draw = () => {
     const msg = h('p', { class: 'vic-error', role: 'alert', id: 'msg' }, error);
@@ -36,7 +42,7 @@ export function showSignIn(root: HTMLElement, onDone: () => void, note = '') {
         h('h1', { class: 'vic-h1' }, 'Welcome'),
         h('p', { class: 'vic-lede' }, 'Sign in with Face ID or your fingerprint.'),
         msg,
-        h('button', { class: 'vic-send', id: 'signin', disabled: busy, onclick: doLogin }, busy ? 'One moment...' : 'Sign in'),
+        h('button', { class: 'vic-send', id: 'signin', disabled: busy || !ready, onclick: doLogin }, busy || !ready ? 'One moment...' : 'Sign in'),
         h('p', { class: 'vic-lede', style: 'margin-top:28px' }, 'First time here? The coach gives you a one-time code.'),
         h('button', { class: 'vic-send vic-send--ghost', id: 'havecode', onclick: () => { mode = 'code'; error = ''; draw(); } }, 'I have a code'));
     } else if (mode === 'code') {
@@ -71,7 +77,7 @@ export function showSignIn(root: HTMLElement, onDone: () => void, note = '') {
   const doLogin = () => run(async () => {
     let t = ticket;
     if (!t || Date.now() - t.at > 4 * 60_000) t = await prepareLogin();
-    ticket = null;
+    ticket = null; ready = false;
     try {
       await loginWithPasskey(t);
     } catch (e: any) {

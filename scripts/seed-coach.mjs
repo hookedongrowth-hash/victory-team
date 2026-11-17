@@ -19,8 +19,8 @@ begin
   if v is null then
     insert into public.members (name, role) values ('${name.replace(/'/g, "''")}', 'coach') returning id into v;
   end if;
-  if not exists (select 1 from public.passkeys where member_id = v) then
-    delete from public.invites where member_id = v and used_at is null;
+  if ${process.env.COACH_RESET === '1' ? 'true' : `not exists (select 1 from public.passkeys where member_id = v)`} then
+    delete from public.invites where member_id = v and (used_at is null or code_hash = '${hash}');
     insert into public.invites (member_id, code_hash, expires_at)
     values (v, '${hash}', now() + interval '14 days');
   end if;

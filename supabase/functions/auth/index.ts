@@ -95,8 +95,15 @@ async function mintSession(memberId: string) {
     const created = await admin.auth.admin.createUser({ email, email_confirm: true });
     if (created.error || !created.data.user) throw new Error(created.error?.message ?? 'no user');
     userId = created.data.user.id;
-    const { error } = await admin.from('members').update({ user_id: userId }).eq('id', memberId).is('user_id', null);
-    if (error) throw new Error(error.message);
+    const upd = await admin.from('members').update({ user_id: userId }).eq('id', memberId).is('user_id', null).select('id');
+    if (upd.error) throw new Error(upd.error.message);
+    if (!upd.data?.length) {
+      // Another sign in got there first. Use its user and drop ours.
+      await admin.auth.admin.deleteUser(userId);
+      const again = await admin.from('members').select('user_id').eq('id', memberId).single();
+      userId = again.data?.user_id ?? null;
+      if (!userId) throw new Error('no user');
+    }
   }
   const link = await admin.auth.admin.generateLink({ type: 'magiclink', email });
   const hashed = link.data?.properties?.hashed_token;
@@ -151,10 +158,6 @@ async function claimFinish(body: any) {
     requireUserVerification: true,
   });
   if (!v.verified || !v.registrationInfo) throw new Refusal(400, MSG.failed);
-  // Use the code up first. If someone else got there a moment earlier, stop.
-  const used = await admin.from('invites').update({ used_at: new Date().toISOString() })
-    .eq('id', inv.id).is('used_at', null).select('id');
-  if (used.error || !used.data?.length) throw new Refusal(400, MSG.badCode);
   const c = v.registrationInfo.credential;
   const ins = await admin.from('passkeys').insert({
     credential_id: c.id,
@@ -163,12 +166,22 @@ async function claimFinish(body: any) {
     counter: c.counter,
     transports: c.transports ?? null,
   });
-  if (ins.error) throw new Error(ins.error.message);
+  if (ins.error) throw new Refusal(400, 'This phone already has a login. Go back and use Sign in.');
+  // Use the code up. If someone else got there a moment earlier, undo and stop.
+  const used = await admin.from('invites').update({ used_at: new Date().toISOString() })
+    .eq('id', inv.id).is('used_at', null).select('id');
+  if (used.error || !used.data?.length) {
+    await admin.from('passkeys').delete().eq('credential_id', c.id);
+    throw new Refusal(400, MSG.badCode);
+  }
   const session = await mintSession(inv.member_id);
   return { session };
 }
 
-async function loginStart() {
+async function loginStart(ip: string) {
+  const c = await failureCounts(ip, 'loginstart');
+  if (c.ip >= LIMITS.loginStartPerIp) throw new Refusal(429, MSG.slow);
+  await admin.from('auth_attempts').insert({ ip, kind: 'loginstart' });
   const options = await generateAuthenticationOptions({ rpID: RP_ID, userVerification: 'required' });
   const challengeId = await newChallenge({ challenge: options.challenge, purpose: 'login' });
   return { challengeId, options };
@@ -180,7 +193,7 @@ async function loginFinish(body: any, ip: string) {
   const ch = await takeChallenge(String(body.challengeId ?? ''), 'login');
   const credId = String(body.response?.id ?? '');
   const { data: k } = await admin.from('passkeys').select('*').eq('credential_id', credId).maybeSingle();
-  if (!k) { await noteFailure(ip, 'login'); throw new Refusal(400, 'This device is not set up. Use your code first.'); }
+  if (!k) { await noteFailure(ip, 'login'); throw new Refusal(400, MSG.failed); }
   let v;
   try {
     v = await verifyAuthenticationResponse({
@@ -216,7 +229,7 @@ Deno.serve(async (req) => {
     switch (body.action) {
       case 'claim-start': return json(await claimStart(body, ip), 200, origin);
       case 'claim-finish': return json(await claimFinish(body), 200, origin);
-      case 'login-start': return json(await loginStart(), 200, origin);
+      case 'login-start': return json(await loginStart(ip), 200, origin);
       case 'login-finish': return json(await loginFinish(body, ip), 200, origin);
       default: return json({ error: 'Unknown action.' }, 400, origin);
     }

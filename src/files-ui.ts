@@ -9,6 +9,10 @@ export interface FileRow {
 export const KIND_LABEL: Record<string, string> = {
   tactics: 'Tactics', briefing: 'Match briefings', schedule: 'Season schedule', other: 'Other',
 };
+const SAFE_TYPES = [
+  'application/pdf', 'image/png', 'image/jpeg', 'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+];
 export const KIND_ORDER = ['tactics', 'briefing', 'schedule', 'other'];
 
 export const size = (n: number | null) => (n ? `${Math.max(1, Math.round(n / 1024))} KB` : '');
@@ -20,12 +24,13 @@ export const size = (n: number | null) => (n ? `${Math.max(1, Math.round(n / 102
  */
 export async function openFile(btn: HTMLButtonElement, f: FileRow) {
   const tab = window.open('', '_blank');
+  if (tab) tab.opener = null;
   const saved = [...btn.childNodes];
   btn.disabled = true;
   try {
     const { data, error } = await sb.storage.from('team-files').download(f.storage_path);
     if (error || !data) throw error ?? new Error('missing');
-    const url = URL.createObjectURL(new Blob([data], { type: f.mime }));
+    const url = URL.createObjectURL(new Blob([data], { type: SAFE_TYPES.includes(f.mime) ? f.mime : 'application/octet-stream' }));
     if (tab && !tab.closed) tab.location.href = url;
     else {
       const a = h('a', { href: url, download: f.title.replace(/[^\w .-]+/g, '_') });
