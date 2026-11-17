@@ -182,7 +182,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     path = rows.body[0].storage_path;
     const dl = await ann.evaluate(async ({ url, anon, path }) => {
       const token = JSON.parse(localStorage.getItem('victory-session')!).access_token;
-      const r = await fetch(`${url}/storage/v1/object/authenticated/team-files/${path}`, { headers: { apikey: anon, authorization: `Bearer ${token}` } });
+      const r = await fetch(`${url}/storage/v1/object/authenticated/team-files/${path}`, { cache: 'no-store', headers: { apikey: anon, authorization: `Bearer ${token}` } });
       return r.status;
     }, { url: URL_, anon: ANON, path });
     expect(dl).toBe(200);
@@ -196,7 +196,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     await expect(ann.getByText('Press slides')).toHaveCount(0);
     const dl = await ann.evaluate(async ({ url, anon, path }) => {
       const token = JSON.parse(localStorage.getItem('victory-session')!).access_token;
-      const r = await fetch(`${url}/storage/v1/object/authenticated/team-files/${path}`, { headers: { apikey: anon, authorization: `Bearer ${token}` } });
+      const r = await fetch(`${url}/storage/v1/object/authenticated/team-files/${path}`, { cache: 'no-store', headers: { apikey: anon, authorization: `Bearer ${token}` } });
       return r.status;
     }, { url: URL_, anon: ANON, path });
     expect(dl).toBeGreaterThanOrEqual(400);
