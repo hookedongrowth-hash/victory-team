@@ -158,6 +158,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     await expect(ann.getByText('For everyone: good week')).toBeVisible();
     await bea.reload();
     await bea.click('[data-tab="feedback"]');
+    console.log('DIAG bea', JSON.stringify((await api(bea, '/rest/v1/members?select=name')).body), JSON.stringify((await api(bea, '/rest/v1/feedback?select=audience,body')).body));
     await expect(bea.getByText('For everyone: good week')).toBeVisible();
     await expect(bea.getByText('Only for Ann')).toHaveCount(0);
     const r = await api(bea, '/rest/v1/feedback?select=body');
@@ -178,6 +179,7 @@ test('coach, two players, feedback, files and privacy', async ({ browser }) => {
     await expect(coach.locator('#msg')).toHaveText('Uploaded and live.');
     await ann.reload();
     await ann.click('[data-tab="files"]');
+    console.log('DIAG ann', JSON.stringify((await api(ann, '/rest/v1/members?select=name')).body), JSON.stringify((await api(ann, '/rest/v1/files?select=title,published_at')).body));
     await expect(ann.getByText('Press slides')).toBeVisible();
     const rows = await api(ann, '/rest/v1/files?select=storage_path');
     path = rows.body[0].storage_path;
