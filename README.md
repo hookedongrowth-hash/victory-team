@@ -14,6 +14,13 @@ It stands on its own. It does not use the Dragons app or any other project.
   - Kind words about teammates and the anonymous note to the coach are readable by the coach only. The anonymous note stores a date and nothing else.
   - Sign in tables are closed to the app. Only the edge function reaches them.
 
+## Quiz: "Name the H1 player"
+
+A one-off team game at `/quiz/`. No account: a player types her first name and plays. The coach runs it from `/quiz/host/` (signed in to the app as coach): press start, the quiz is open for 1:30, then it closes and shows the winner and every answer. Most right answers wins, a tie goes to whoever got there first. The winner gets a Joker.
+
+- The photos are in `public/quiz-photos/` and the names in `supabase/migrations/20261120100000_quiz.sql`. The tables are closed; the anon key only reaches four functions (`quiz_state`, `quiz_join`, `quiz_questions`, `quiz_answer`), and the right answer is checked in the database.
+- `public/quiz-qr.svg` is the QR code for `https://hookedongrowth-hash.github.io/victory-team/quiz/`. If the site address changes, make a new one.
+
 ## Layout
 
 ```

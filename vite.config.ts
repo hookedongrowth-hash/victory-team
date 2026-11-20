@@ -1,4 +1,7 @@
 import { defineConfig } from 'vite';
+import { fileURLToPath } from 'node:url';
+
+const page = (p: string) => fileURLToPath(new URL(p, import.meta.url));
 
 // The app is served from https://<user>.github.io/victory-team/
 // A content security policy that only lets the page talk to its own Supabase project.
@@ -21,6 +24,10 @@ function csp() {
 export default defineConfig({
   plugins: [csp()],
   base: process.env.VITE_BASE ?? '/victory-team/',
-  build: { target: 'es2022', sourcemap: false },
+  build: {
+    target: 'es2022', sourcemap: false,
+    // The team app, plus the quiz pages (players at /quiz/, the coach at /quiz/host/).
+    rollupOptions: { input: { main: page('index.html'), quiz: page('quiz/index.html'), quizHost: page('quiz/host/index.html') } },
+  },
   test: { include: ['tests/unit/**/*.test.ts', 'tests/rls/**/*.test.ts'] },
 } as any);
